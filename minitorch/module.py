@@ -21,13 +21,19 @@ class Module:
 
     def train(self):
         "Set the mode of this module and all descendent modules to `train`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        def traverse_helper(cur):
+            cur.training = True
+            for child_module in cur.__dict__["_modules"].values():
+                traverse_helper(child_module)
+        traverse_helper(self)
 
     def eval(self):
         "Set the mode of this module and all descendent modules to `eval`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        def traverse_helper(cur):
+            cur.training = False
+            for child_module in cur.__dict__["_modules"].values():
+                traverse_helper(child_module)
+        traverse_helper(self)
 
     def named_parameters(self):
         """
@@ -37,13 +43,21 @@ class Module:
         Returns:
             list of pairs: Contains the name and :class:`Parameter` of each ancestor parameter.
         """
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        res = {}
+        def traverse_helper(name, node):
+            prefix = name + "." if name else ""
+            for k, v in node._parameters.items():
+                res[prefix + k] = v
+            for k, v in node._modules.items():
+                traverse_helper(prefix + k, v)
+
+        traverse_helper("", self)
+        return res
 
     def parameters(self):
         "Enumerate over all the parameters of this module and its descendents."
         # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        return self.named_parameters().values()
 
     def add_parameter(self, k, v):
         """
