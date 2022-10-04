@@ -68,7 +68,7 @@ def sigmoid(x):
     Returns:
         float : sigmoid value
     """
-    return 1. / (1 + exp(-x)) if x >= 0 else exp(x) / (1. + exp(x))
+    return 1. / (1 + exp(-x)) if x >= 0.0 else exp(x) / (1. + exp(x))
 
 
 
@@ -84,7 +84,7 @@ def relu(x):
     Returns:
         float : relu value
     """
-    return x if x > 0 else 0
+    return x if x > 0.0 else 0.0
 
 
 EPS = 1e-6
@@ -112,12 +112,12 @@ def inv(x):
 
 def inv_back(x, d):
     r"If :math:`f(x) = 1/x` compute :math:`d \times f'(x)`"
-    return - float(d) / (x**2 + EPS)
+    return - float(d) / x**2
 
 
 def relu_back(x, d):
     r"If :math:`f = relu` compute :math:`d \times f'(x)`"
-    return d if x > 0 else 0
+    return d if x > 0 else 0.0
 
 
 # ## Task 0.3

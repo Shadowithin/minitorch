@@ -1,5 +1,5 @@
 import minitorch.operators as operators
-
+from copy import deepcopy
 
 class MathTest:
     @staticmethod

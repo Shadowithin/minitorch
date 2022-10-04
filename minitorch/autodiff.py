@@ -191,7 +191,8 @@ class History:
             list of numbers : a derivative with respect to `inputs`
         """
         # TODO: Implement for Task 1.4.
-        raise NotImplementedError('Need to implement for Task 1.4')
+        return self.last_fn.chain_rule(self.ctx, self.inputs, d_output)
+
 
 
 class FunctionBase:
@@ -245,7 +246,7 @@ class FunctionBase:
 
         # Call forward with the variables.
         c = cls.forward(ctx, *raw_vals)
-        assert isinstance(c, cls.data_type), "Expected return typ %s got %s" % (
+        assert isinstance(c, cls.data_type), "Expected return type %s got %s" % (
             cls.data_type,
             type(c),
         )
@@ -274,7 +275,20 @@ class FunctionBase:
         # Tip: Note when implementing this function that
         # cls.backward may return either a value or a tuple.
         # TODO: Implement for Task 1.3.
-        raise NotImplementedError('Need to implement for Task 1.3')
+        derivatives = cls.backward(ctx, d_output)
+        result = []
+        i = 0
+        if isinstance(derivatives, tuple):
+            for val in inputs:
+                if not is_constant(val):
+                    result.append((val, derivatives[i]))
+                i = i + 1
+        else:
+            for val in inputs:
+                if not is_constant(val):
+                    result.append((val, derivatives))
+                i = i + 1
+        return result
 
 
 # Algorithms for backpropagation
@@ -296,7 +310,36 @@ def topological_sort(variable):
                             starting from the right.
     """
     # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+
+    PermanentMarked = []
+    TemporaryMarked = []
+    result = []
+
+    def traverse_helper(n):
+        if is_constant(n):
+            return
+        if n.unique_id in PermanentMarked:
+            return
+        elif n.unique_id in TemporaryMarked:
+            raise(RuntimeError("Not a DAG"))
+
+        TemporaryMarked.append(n.unique_id)
+
+        if n.is_leaf():
+            pass
+        else:
+            for input in n.history.inputs:
+                traverse_helper(input)
+        TemporaryMarked.remove(n.unique_id)
+        PermanentMarked.append(n.unique_id)
+        # 插入到开头
+        result.insert(0,n)
+
+    traverse_helper(variable)
+
+    return result
+
+
 
 
 def backpropagate(variable, deriv):
@@ -313,4 +356,22 @@ def backpropagate(variable, deriv):
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
     # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    order = topological_sort(variable)
+
+    derivs = {variable.unique_id: deriv}
+
+    count = 0
+    for node in order:
+        count += 1
+        #print(node.unique_id + " " + str(count))
+        d_output = derivs[node.unique_id]
+        if node.is_leaf():
+            node.accumulate_derivative(d_output)
+        else:
+            for input, d in node.history.backprop_step(d_output):
+                #print("input " + str(input.unique_id))
+                if input.unique_id not in derivs:
+                    #print("create " + str(input.unique_id))
+                    derivs[input.unique_id] = 0.0
+                derivs[input.unique_id] += d
+    return
